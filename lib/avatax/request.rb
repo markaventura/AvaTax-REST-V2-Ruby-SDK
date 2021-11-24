@@ -1,6 +1,7 @@
 require 'faraday'
 require 'json'
 require "erb"
+require "addressable/uri"
 
 
 module AvaTax
@@ -24,11 +25,13 @@ module AvaTax
 
     def request(method, path, model, options={})
       response = connection.send(method) do |request|
+        # timeout in seconds
+        request.options['timeout'] = 1200
         case method
         when :get, :delete
-          request.url("#{encode_path(path)}?#{URI.encode_www_form(options)}")
+          request.url("#{Addressable::URI.encode(path)}?#{URI.encode_www_form(options)}")
         when :post, :put
-          request.url("#{encode_path(path)}?#{URI.encode_www_form(options)}")
+          request.url("#{Addressable::URI.encode(path)}?#{URI.encode_www_form(options)}")
           request.headers['Content-Type'] = 'application/json'
           request.body = model.to_json unless model.empty?
         end
